@@ -1,0 +1,5 @@
+name: vim
+depends:
+  - libs/ncurses
+description: A text editor?? lol
+git: https://github.com/vim/vim
