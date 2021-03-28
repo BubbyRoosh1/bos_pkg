@@ -4,6 +4,11 @@ use std::process::Command;
 use yaml_rust::YamlLoader;
 use yaml_rust::yaml::Yaml;
 
+fn get_config(name: &String) -> Result<Yaml, Box<dyn Error>> {
+    let file = fs::read_to_string(format!("/var/db/bos_pkg/pkgs/{}/config.yaml", name))?;
+    Ok(YamlLoader::load_from_str(&file)?[0].clone())
+}
+
 /// Packages are named by category/name, so if just name is given, category needs to be figured out
 pub fn parse_name(name: &mut String) {
     // TODO
@@ -11,6 +16,17 @@ pub fn parse_name(name: &mut String) {
     else {
 
     }
+}
+
+pub fn query_pkg(mut name: String) -> Result<(), Box<dyn Error>> {
+    parse_name(&mut name);
+    let installed = fs::read_to_string("/var/db/bos_pkg/installed")?;
+    for pkg in installed.lines() {
+        if pkg.contains(&name) {
+            println!("{}", pkg);
+        }
+    }
+    Ok(())
 }
 
 pub fn install_pkgs(names: Vec<String>) -> Result<(), Box<dyn Error>> {
@@ -27,20 +43,24 @@ pub fn install_pkg(mut name: String) -> Result<(), Box<dyn Error>> {
     println!("Installing {}...", name);
     let mut installed = fs::read_to_string("/var/db/bos_pkg/installed")?;
     // Skip if already installed
-    if installed.contains(&name) {
-        println!("{} is already installed.", name);
-        return Ok(());
+    for line in installed.lines() {
+        if line.starts_with(&name) {
+            println!("{} is already installed.", name);
+            return Ok(());
+        }
     }
 
     // Read config
-    let file = fs::read_to_string(format!("/var/db/bos_pkg/pkgs/{}/config.yaml", name))?;
-    let yaml = &YamlLoader::load_from_str(&file)?[0];
+    let yaml = get_config(&name)?;
+
     // Install dependencies.
     if let Yaml::Array(arr) = &yaml["depends"] {
         for dependency in arr {
             if let Yaml::String(d) = dependency {
                 // Recursion :V
                 install_pkg(d.to_owned())?;
+                installed.push_str(d);
+                installed.push('\n');
             }
         }
     }
@@ -48,9 +68,10 @@ pub fn install_pkg(mut name: String) -> Result<(), Box<dyn Error>> {
     let mut made_dir = false;
     // Prepare for build
     if let Yaml::String(git) = &yaml["git"] {
-        fs::create_dir_all(format!("/tmp/{}", name))?;
-        env::set_current_dir(format!("/tmp/{}", name))?;
-        git2::Repository::clone(git, format!("/tmp/{}", name))?;
+        let dir = format!("/tmp/{}", name);
+        fs::create_dir_all(&dir)?;
+        env::set_current_dir(&dir)?;
+        git2::Repository::clone(git, dir)?;
         made_dir = true;
     }
 
@@ -79,7 +100,47 @@ pub fn remove_pkgs(names: Vec<String>) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-pub fn remove_pkg(_name: String) -> Result<(), Box<dyn Error>> {
-    // TODO
+// TODO: Find a better way to do this.
+pub fn remove_pkg(mut name: String) -> Result<(), Box<dyn Error>> {
+    parse_name(&mut name);
+    let installed = fs::read_to_string("/var/db/bos_pkg/installed")?;
+
+    let mut index = -1;
+    for (idx, line) in installed.lines().enumerate() {
+        if line.starts_with(&name) {
+            index = idx as i32;
+        }
+    }
+
+    // Any other way to do this..? That makes a decent amount of sense.
+    if index == -1 {
+        println!("{} is not installed.", name);
+        return Ok(());
+    }
+
+    let yaml = get_config(&name)?;
+    if let Yaml::Array(arr) = &yaml["files"] {
+        for entry in arr {
+            if let Yaml::String(file) = entry {
+                let path = std::path::Path::new(file);
+                if path.is_dir() {
+                    println!("Removing dir {}", file);
+                    fs::remove_dir_all(file)?;
+                } else if path.is_file() {
+                    println!("Removing file {}", file);
+                    fs::remove_file(file)?;
+                }
+            }
+        }
+
+        let mut new_installed = String::new();
+        for (idx, line) in installed.lines().enumerate() {
+            if idx != index as usize {
+                new_installed.push_str(line);
+                new_installed.push('\n');
+            }
+        }
+        fs::write("/var/db/bos_pkg/installed", new_installed)?;
+    }
     Ok(())
 }

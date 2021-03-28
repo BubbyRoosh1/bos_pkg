@@ -1,0 +1,7 @@
+# TODO: xorg packages/libs
+name: st
+description: Suckless Terminal
+files:
+  - /usr/local/bin/st
+  - /usr/local/share/man/man1/st.1
+git: https://git.suckless.org/st

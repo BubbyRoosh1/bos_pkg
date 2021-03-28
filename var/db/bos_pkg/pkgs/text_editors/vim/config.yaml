@@ -1,5 +1,12 @@
 name: vim
+description: A text editor?? lol
 depends:
   - libs/ncurses
-description: A text editor?? lol
+
+files:
+  - /usr/local/bin/vim
+  - /usr/local/share/vim
+  - /usr/local/share/man/man1/vimdiff.1
+  - /usr/local/share/man/man1/vimtutor.1
+
 git: https://github.com/vim/vim

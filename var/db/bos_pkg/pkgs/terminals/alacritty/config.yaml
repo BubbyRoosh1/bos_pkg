@@ -1,0 +1,7 @@
+name: alacritty
+description: Terminal emulator written in rust, using GPU acceleration
+depends:
+  - dev_langs/rust
+  - dev_langs/python
+    #- libs/freetype
+git: https://github.com/alacritty/alacritty.git

@@ -16,10 +16,8 @@ Pretty simple.
 5. Use the thing lol.
 
 ## TODO
-Most of this isn't done yet cause it's getting late and yeah.
-
 * Add packages (I will say "Nice!" every time someone besides myself contributes.. not like this'll take off seeing as it's only a package manager but still).
-* Add the ability to remove packages.
-* Package category/name assumption.
-* Search/Query (optional --regex)
+* Package category/name resolution.
+* /etc/bos_pkg/Config.yaml
+* Makeopts (-j4, -march=native, etc)
 * Other things idk
