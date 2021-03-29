@@ -16,8 +16,8 @@ Pretty simple.
 5. Use the thing lol.
 
 ## TODO
-* Add packages (I will say "Nice!" every time someone besides myself contributes.. not like this'll take off seeing as it's only a package manager but still).
-* Package category/name resolution.
 * /etc/bos_pkg/Config.yaml
 * Makeopts (-j4, -march=native, etc)
+* Better package removal
+* Add packages (pls :))
 * Other things idk
