@@ -1,3 +1,10 @@
-# Probably gunna use this for query stuff.. idk yet
+base/sbase
+base/sbase-box
+base/ubase
+base/ubase-box
+dev_langs/python
+dev_langs/rust
+terminals/alacritty
+terminals/st
 libs/ncurses
 text_editors/vim

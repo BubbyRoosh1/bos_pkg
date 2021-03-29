@@ -10,19 +10,24 @@ fn get_config(name: &String) -> Result<Yaml, Box<dyn Error>> {
 }
 
 /// Packages are named by category/name, so if just name is given, category needs to be figured out
-pub fn parse_name(name: &mut String) {
-    // TODO
-    if name.contains('/') {}
-    else {
-
+pub fn parse_name(mut name: String) -> Result<String, Box<dyn Error>> {
+    // Assume names with '/' are correct.
+    if !name.contains('/') {
+        let package_index = fs::read_to_string("/var/db/bos_pkg/index")?;
+        for pkg in package_index.lines() {
+            if pkg.split("/").collect::<Vec<_>>().get(1).unwrap() == &name {
+                name = pkg.to_owned();
+            }
+        }
     }
+    Ok(name)
 }
 
-pub fn query_pkg(mut name: String) -> Result<(), Box<dyn Error>> {
-    parse_name(&mut name);
-    let installed = fs::read_to_string("/var/db/bos_pkg/installed")?;
-    for pkg in installed.lines() {
-        if pkg.contains(&name) {
+pub fn query_pkg(name: String) -> Result<(), Box<dyn Error>> {
+    let name = parse_name(name)?;
+    let package_index = fs::read_to_string("/var/db/bos_pkg/index")?;
+    for pkg in package_index.lines() {
+        if pkg.split("/").collect::<Vec<_>>().get(1).unwrap().contains(&name) {
             println!("{}", pkg);
         }
     }
@@ -37,8 +42,8 @@ pub fn install_pkgs(names: Vec<String>) -> Result<(), Box<dyn Error>> {
 }
 
 /// Worked the first time with vim :v
-pub fn install_pkg(mut name: String) -> Result<(), Box<dyn Error>> {
-    parse_name(&mut name);
+pub fn install_pkg(name: String) -> Result<(), Box<dyn Error>> {
+    let name = parse_name(name)?;
 
     println!("Installing {}...", name);
     let mut installed = fs::read_to_string("/var/db/bos_pkg/installed")?;
@@ -101,8 +106,8 @@ pub fn remove_pkgs(names: Vec<String>) -> Result<(), Box<dyn Error>> {
 }
 
 // TODO: Find a better way to do this.
-pub fn remove_pkg(mut name: String) -> Result<(), Box<dyn Error>> {
-    parse_name(&mut name);
+pub fn remove_pkg(name: String) -> Result<(), Box<dyn Error>> {
+    let name = parse_name(name)?;
     let installed = fs::read_to_string("/var/db/bos_pkg/installed")?;
 
     let mut index = -1;

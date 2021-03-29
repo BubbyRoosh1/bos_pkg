@@ -1,4 +1,1 @@
 # To ensure you aren't recompiling the same things over and over again
-terminals/alacritty
-libs/ncurses
-text_editors/vim

@@ -1,0 +1,3 @@
+name: ubase
+description: Suckless collection of unportable tools in spirit to util-linux.
+git: git://git.suckless.org/ubase
